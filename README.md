@@ -13,8 +13,8 @@ export REGION_1=us-central1
 export REGION_2=us-east4
 export CLUSTER_1=gke-1
 export CLUSTER_2=gke-2
-export KUBECTX_1=gke_e2m-private-test-01_us-central1_edge-to-mesh-01
-export KUBECTX_2=gke_e2m-private-test-01_us-east4_edge-to-mesh-02
+export KUBECTX_1=gke_${PROJECT}_${REGION_1}_${CLUSTER_1}
+export KUBECTX_2=gke_${PROJECT}_${REGION_2}_${CLUSTER_2}
 gcloud config set project $PROJECT
 ```
 
@@ -23,5 +23,22 @@ gcloud config set project $PROJECT
 
 
 ```
+kubectl --context=${KUBECTX_1} create namespace csm-ingress
+kubectl --context=${KUBECTX_2} create namespace csm-ingress
+
+kubectl --context=${KUBECTX_1} label namespace csm-ingress istio-injection=enabled
+kubectl --context=${KUBECTX_2} label namespace csm-ingress istio-injection=enabled
+
+kubectl --context ${KUBECTX_1} apply -k ingress-gateway/variant
+kubectl --context ${KUBECTX_2} apply -k ingress-gateway/variant
+
+kubectl --context=${KUBECTX_1} create namespace whereami
+kubectl --context=${KUBECTX_2} create namespace whereami
+
+kubectl --context=${KUBECTX_1} label namespace whereami istio-injection=enabled
+kubectl --context=${KUBECTX_2} label namespace whereami istio-injection=enabled
+
+kubectl --context ${KUBECTX_1} apply -k whereami/variant
+kubectl --context ${KUBECTX_2} apply -k whereami/variant
 
 ```
