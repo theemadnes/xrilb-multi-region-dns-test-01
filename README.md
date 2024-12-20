@@ -186,3 +186,8 @@ and scale down replicas for `cluster_1`:
 ```
 kubectl --context ${KUBECTX_1} -n csm-ingress scale deployment asm-ingressgateway --replicas=0
 ```
+
+to return to normal, rescale the ingress gateways in `cluster_1`:
+```
+kubectl --context ${KUBECTX_1} -n csm-ingress scale deployment asm-ingressgateway --replicas=3
+```
