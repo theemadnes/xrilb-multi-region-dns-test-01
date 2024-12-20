@@ -163,3 +163,26 @@ admin@instance-20241220-053422:~$ curl -H "Host: whereami.mesh.example.com" http
 ```
 
 ### set up Cloud DNS for failover
+
+```
+# create zone
+gcloud dns --project=$PROJECT managed-zones create geotest --description="" --dns-name="example.com." --visibility="private" --networks="https://www.googleapis.com/compute/v1/projects/${PROJECT}/global/networks/${VPC}"
+
+# create record that targets the ingress gateway xr NLB VIPs (you'll need to find the FW rule names on your own)
+# NOTE: replace forwarding rule names with your own
+gcloud dns --project=$PROJECT record-sets create *.mesh.example.com. --zone="geotest" --type="A" --ttl="5" --routing-policy-type="GEO" --enable-health-checking --routing-policy-data="${REGION_1}=projects/${PROJECT}/global/forwardingRules/ingress-gateway-forwarding-rule-${REGION_1};${REGION_2}=projects/${PROJECT}/global/forwardingRules/ingress-gateway-forwarding-rule-${REGION_2}"
+```
+
+### test failover from VM
+
+in my case, i'm testing from a VM in `us-central`, so should failover to `us-east4` if i shut down IG pods in `us-central`.
+
+from the VM run:
+```
+watch -n 1 curl whereami.mesh.example.com
+```
+
+and scale down replicas for `cluster_1`:
+```
+kubectl --context ${KUBECTX_1} -n csm-ingress scale deployment asm-ingressgateway --replicas=0
+```
